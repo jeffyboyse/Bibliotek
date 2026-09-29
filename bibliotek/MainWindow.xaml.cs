@@ -28,119 +28,133 @@ namespace bibliotek
                 await using var connection = new MySqlConnection(connectionString);
                 await connection.OpenAsync();
 
-                // 1. Stäng av främmande nycklar under HELA seeding-processen
+                // 1. Stäng av främmande nycklar under seeding-processen
                 await ExecuteSqlAsync(connection, "SET FOREIGN_KEY_CHECKS = 0;");
 
-                // 2. Rensa alla tabeller
+                // 2. Rensa alla tabeller i databasen
                 await ExecuteSqlAsync(connection, "TRUNCATE TABLE Invoice;");
                 await ExecuteSqlAsync(connection, "TRUNCATE TABLE Loan;");
                 await ExecuteSqlAsync(connection, "TRUNCATE TABLE Copy;");
+                await ExecuteSqlAsync(connection, "TRUNCATE TABLE MediaAttribute;");
+                await ExecuteSqlAsync(connection, "TRUNCATE TABLE Attribute;");
                 await ExecuteSqlAsync(connection, "TRUNCATE TABLE MediaAuthor;");
                 await ExecuteSqlAsync(connection, "TRUNCATE TABLE Media;");
                 await ExecuteSqlAsync(connection, "TRUNCATE TABLE User;");
                 await ExecuteSqlAsync(connection, "TRUNCATE TABLE Author;");
                 await ExecuteSqlAsync(connection, "TRUNCATE TABLE Category;");
 
-                // 3. Sätt in testdata
+                // 3. Sätt in testdata anpassad efter schemat i Library.sql
 
-                // Category (8 st)
+                // Category (SAB_system, Description)
                 await ExecuteSqlAsync(connection, @"
-                    INSERT INTO Category (SAB_system, Description) VALUES
-                    ('Hc', 'Svenska romaner'),
-                    ('Hcg', 'Barnlitteratur'),
-                    ('Hcb', 'Ungdomslitteratur'),
-                    ('He', 'Engelsk skönlitteratur'),
-                    ('I', 'Konst, musik och film'),
-                    ('O', 'Samhälls- och rättsvetenskap'),
-                    ('T', 'Teknik och datavetenskap'),
-                    ('U', 'Naturvetenskap');");
+            INSERT INTO Category (SAB_system, Description) VALUES
+            ('Hc', 'Svenska romaner'),
+            ('Hcg', 'Barnlitteratur'),
+            ('Hcb', 'Ungdomslitteratur'),
+            ('He', 'Engelsk skönlitteratur'),
+            ('I', 'Konst, musik och film'),
+            ('O', 'Samhälls- och rättsvetenskap'),
+            ('T', 'Teknik och datavetenskap'),
+            ('U', 'Naturvetenskap');");
 
-                // User (8 st)
+                // User (Userr_ID är AUTO_INCREMENT)
                 await ExecuteSqlAsync(connection, @"
-                    INSERT INTO User (Username, Email, Password, Role) VALUES
-                    ('stina_admin', 'stina@lib.se', '1234', 1),
-                    ('boss_magnus', 'magnus.chef@lib.se', 'admin999', 1),
-                    ('anna_låntagare', 'anna@mail.com', '1234', 0),
-                    ('erik_k', 'erik.karlsson@gmail.com', 'pass123', 0),
-                    ('maria_b', 'maria.berg@outlook.com', 'marian12', 0),
-                    ('johan_s', 'johan.svensson@yahoo.se', 'johan2024', 0),
-                    ('linda_p', 'linda.persson@hotmail.com', 'lindaPass', 0),
-                    ('karin_n', 'karin.nilsson@gmail.com', 'karin88', 0);");
+            INSERT INTO User (FirstName, LastName, Email, Password, Role) VALUES
+            ('Stina', 'Karlsson', 'stina@lib.se', '1234', 1),
+            ('Magnus', 'Boss', 'magnus.chef@lib.se', 'admin999', 1),
+            ('Anna', 'Folkesson', 'anna@mail.com', '1234', 0),
+            ('Erik','Karlsson', 'erik.karlsson@gmail.com', 'pass123', 0),
+            ('Maria','Berg', 'maria.berg@outlook.com', 'marian12', 0),
+            ('Johan','Svensson', 'johan.svensson@yahoo.se', 'johan2024', 0),
+            ('Linda','Persson', 'linda.persson@hotmail.com', 'lindaPass', 0),
+            ('karin','Nilsson', 'karin.nilsson@gmail.com', 'karin88', 0);");
 
-                // Author (10 st)
+                // Author (AuthorID har inte AUTO_INCREMENT och måste anges explicita)
                 await ExecuteSqlAsync(connection, @"
-                    INSERT INTO Author (First_name, Last_name) VALUES
-                    ('Astrid', 'Lindgren'),
-                    ('George', 'Orwell'),
-                    ('J.R.R.', 'Tolkien'),
-                    ('Fredrik', 'Backman'),
-                    ('Camilla', 'Läckberg'),
-                    ('Stephen', 'King'),
-                    ('J.K.', 'Rowling'),
-                    ('Agatha', 'Christie'),
-                    ('Selma', 'Lagerlöf'),
-                    ('Hjalmar', 'Söderberg');");
+            INSERT INTO Author (AuthorID, First_Name, Last_Name) VALUES
+            (1, 'Astrid', 'Lindgren'),
+            (2, 'George', 'Orwell'),
+            (3, 'J.R.R.', 'Tolkien'),
+            (4, 'Fredrik', 'Backman'),
+            (5, 'Camilla', 'Läckberg'),
+            (6, 'Stephen', 'King'),
+            (7, 'J.K.', 'Rowling'),
+            (8, 'Agatha', 'Christie'),
+            (9, 'Selma', 'Lagerlöf'),
+            (10, 'Hjalmar', 'Söderberg');");
 
-                // Media (10 st)
+                // Media (Innehåller endast Title och Publish_year i databasen)
                 await ExecuteSqlAsync(connection, @"
-                    INSERT INTO Media (Type, Title, Replacement_value, SAB_system, ISBN, EAN) VALUES
-                    ('book', 'Bröderna Lejonhjärta', 199.00, 'Hcg', '9789129688313', NULL),
-                    ('book', '1984', 149.00, 'Hc', '9780451524935', NULL),
-                    ('book', 'Sagan om Ringen', 249.00, 'He', '9789113084626', NULL),
-                    ('book', 'En man som heter Ove', 189.00, 'Hc', '9789137138114', NULL),
-                    ('book', 'Isprinsessan', 169.00, 'Hc', '9789137122113', NULL),
-                    ('book', 'Pippi Långstrump', 159.00, 'Hcg', '9789129657005', NULL),
-                    ('book', 'Doktor Glas', 139.00, 'Hc', '9789174291889', NULL),
-                    ('book', 'Harry Potter och De vises sten', 219.00, 'Hcb', '9789129640007', NULL),
-                    ('movie', 'Inception', 199.00, 'I', NULL, '7391772322115'),
-                    ('movie', 'Interstellar', 199.00, 'I', NULL, '7391772322117');");
+            INSERT INTO Media (MediaID, Title, Publish_year) VALUES
+            (1, 'Bröderna Lejonhjärta', 1973),
+            (2, '1984', 1949),
+            (3, 'Sagan om Ringen', 1954),
+            (4, 'En man som heter Ove', 2012),
+            (5, 'Isprinsessan', 2003),
+            (6, 'Pippi Långstrump', 1945),
+            (7, 'Doktor Glas', 1905),
+            (8, 'Harry Potter och De vises sten', 1997),
+            (9, 'Inception', 2010),
+            (10, 'Interstellar', 2014);");
 
-                // MediaAuthor (8 st kopplingar)
+                // Attribute (Medietyper/Egenskaper)
                 await ExecuteSqlAsync(connection, @"
-                    INSERT INTO MediaAuthor (AuthorID, MediaID) VALUES
-                    (1, 1),
-                    (2, 2),
-                    (3, 3),
-                    (4, 4),
-                    (5, 5),
-                    (1, 6),
-                    (10, 7),
-                    (7, 8);");
+            INSERT INTO Attribute (AttributeID, Namn) VALUES
+            (1, 'Bok'),
+            (2, 'Ljudbok'),
+            (3, 'Film');");
 
-                // Loan (Lån, skapar LoanID 1-8)
+                // MediaAttribute (Kopplar Media till Attribute)
                 await ExecuteSqlAsync(connection, @"
-                    INSERT INTO Loan (Return_date, Loaning_date, UserID, LastReturn_date, Bar_code) VALUES
-                    ('2026-03-01', '2026-02-01', 3, '2026-03-01', 'BC001'),
-                    ('2026-02-15', '2026-01-15', 4, '2026-02-15', 'BC002'),
-                    ('2026-03-10', '2026-02-10', 5, '2026-03-10', 'BC003'),
-                    ('2026-02-01', '2026-01-01', 6, '2026-02-01', 'BC004'),
-                    ('2026-03-20', '2026-02-20', 7, '2026-03-20', 'BC005'),
-                    ('2026-01-30', '2026-01-01', 3, '2026-01-25', 'BC006'),
-                    ('2026-02-05', '2026-01-05', 4, '2026-02-02', 'BC007'),
-                    ('2026-02-10', '2026-01-10', 5, '2026-02-08', 'BC008');");
+            INSERT INTO MediaAttribute (MediaID, Value, AttributeID) VALUES
+            (1, 1, 1),
+            (2, 2, 1),
+            (3, 3, 1),
+            (4, 4, 1),
+            (5, 5, 1),
+            (6, 6, 1),
+            (7, 7, 1),
+            (8, 8, 1),
+            (9, 9, 3),
+            (10, 10, 3);");
 
-                // Copy (Kopplas till LoanID 1-8)
+                // MediaAuthor (Kopplar Media till Author)
                 await ExecuteSqlAsync(connection, @"
-                    INSERT INTO Copy (Bar_code, Status, LoanID) VALUES
-                    ('BC001', 0, 1),
-                    ('BC002', 1, 2),
-                    ('BC003', 0, 3),
-                    ('BC004', 1, 4),
-                    ('BC005', 0, 5),
-                    ('BC006', 0, 6),
-                    ('BC007', 1, 7),
-                    ('BC008', 0, 8);");
+            INSERT INTO MediaAuthor (MediaAuthorID, MediaID, AuthorID) VALUES
+            (1, 1, 1),
+            (2, 2, 2),
+            (3, 3, 3),
+            (4, 4, 4),
+            (5, 5, 5),
+            (6, 6, 1),
+            (7, 7, 10),
+            (8, 8, 7);");
+
+                // Copy (Exemplar kopplade till streckkoder)
+                await ExecuteSqlAsync(connection, @"
+            INSERT INTO Copy (Bar_code, Status, LoanID) VALUES
+            ('BC001', 1, 1),
+            ('BC002', 1, 2),
+            ('BC003', 0, 3),
+            ('BC004', 1, 4),
+            ('BC005', 0, 5);");
+
+                // Loan (Aktiva/tidigare lån)
+                await ExecuteSqlAsync(connection, @"
+            INSERT INTO Loan (LoanID, Return_date, Loaning_date, UserID, LastReturn_date, Bar_code) VALUES
+            (1, '2026-03-01', '2026-02-01', 3, '2026-03-01', 'BC001'),
+            (2, '2026-02-15', '2026-01-15', 4, '2026-02-15', 'BC002'),
+            (3, '2026-03-10', '2026-02-10', 5, '2026-03-10', 'BC003'),
+            (4, '2026-02-01', '2026-01-01', 6, '2026-02-01', 'BC004'),
+            (5, '2026-03-20', '2026-02-20', 7, '2026-03-20', 'BC005');");
 
                 // Invoice (Fakturor)
                 await ExecuteSqlAsync(connection, @"
-                    INSERT INTO Invoice (Paid_date, Last_due_date, Created_date, Amount, LoanID) VALUES
-                    ('2026-03-01', '2026-03-15', '2026-02-15', '100', 1),
-                    ('2026-02-15', '2026-03-01', '2026-02-01', '150', 2),
-                    ('2026-02-01', '2026-02-20', '2026-01-20', '50', 3),
-                    ('2026-02-15', '2026-03-05', '2026-02-05', '50', 4),
-                    ('2026-03-15', '2026-04-01', '2026-03-01', '200', 5);");
+            INSERT INTO Invoice (Paid_date, Invoice_paid, Last_due_date, Created_date, Amount, LoanID) VALUES
+            ('2026-03-01', 1, '2026-03-15', '2026-02-15', '100', 1),
+            ('2026-02-15', 0, '2026-03-01', '2026-02-01', '150', 2);");
 
-                // 4. Slå på främmande nycklar igen när all data är insatt
+                // 4. Slå på främmande nycklar igen
                 await ExecuteSqlAsync(connection, "SET FOREIGN_KEY_CHECKS = 1;");
 
                 MessageBox.Show("Databasen 'bibliotek' har fyllts med testdata!", "Klart", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -150,9 +164,8 @@ namespace bibliotek
                 MessageBox.Show($"Ett databasfel uppstod:\n\n{ex.Message}", "Fel", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-
-        // Hjälpmetod för att exekvera SQL-frågor
-        private async Task ExecuteSqlAsync(MySqlConnection conn, string sql)
+            // Hjälpmetod för att exekvera SQL-frågor asynkront
+            private async Task ExecuteSqlAsync(MySqlConnection conn, string sql)
         {
             await using var cmd = new MySqlCommand(sql, conn);
             await cmd.ExecuteNonQueryAsync();
