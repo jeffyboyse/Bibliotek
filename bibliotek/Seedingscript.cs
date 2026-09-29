@@ -249,8 +249,15 @@ namespace bibliotek
             {
                 MessageBox.Show($"Ett databasfel uppstod:\n\n{ex.Message}", "Fel", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+            // Helper to execute a SQL statement asynchronously using the open MySqlConnection
+            private static async System.Threading.Tasks.Task ExecuteSqlAsync(MySqlConnection connection, string sql)
+            {
+                using var cmd = new MySqlCommand(sql, connection);
+                await cmd.ExecuteNonQueryAsync();
+            }
                     }
 
             }
-        }
 
