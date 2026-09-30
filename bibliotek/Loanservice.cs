@@ -39,6 +39,7 @@ namespace bibliotek.Services
                 User_ID = userID, // Ändrat från UserID till User_ID
                 Bar_code = barCode,
                 Loaning_date = DateTime.Now,
+                LastReturn_date = DateTime.Now.AddDays(21),
                 Return_date = null
             };
 
