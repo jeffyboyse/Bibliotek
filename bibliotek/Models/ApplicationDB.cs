@@ -11,6 +11,7 @@ namespace bibliotek.Models
         public DbSet<Loan> Loans { get; set; }
         public DbSet<User> Users { get; set; }
 
+
         // Här är kopplingen till databasen
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
