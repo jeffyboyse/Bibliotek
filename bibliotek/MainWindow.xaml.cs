@@ -1,18 +1,28 @@
-﻿using System;
+﻿using bibliotek.Models;
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+
 
 namespace bibliotek
 {
     public partial class MainWindow : Window
     {
         private readonly MediaSearch _searchService = new MediaSearch();
+        private readonly User? _currentUser; // Sparar den inloggade användaren
 
         public MainWindow()
         {
             InitializeComponent();
             PerformSearch(); // Perform an initial search to populate all media on startup
+        }
+        //Överlagrad konstruktor som tar emot den inloggade användaren från LoginWindow
+        public MainWindow(User user) : this()
+        {
+            _currentUser = user;
+            // Exempel: Sätt fönstrets titel med användarens namn
+            this.Title = $"Bibliotekssystem - Inloggad som {user.FirstName} {user.LastName}";
         }
 
         private void BtnSearch_Click(object sender, RoutedEventArgs e)
