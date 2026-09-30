@@ -7,9 +7,11 @@ namespace bibliotek.Models
     public class ApplicationDbContext : DbContext
     {
         // De här DbSet / klasserna motsvarar tabeller i MySQL-databasen
-        public DbSet<Copy> Copies { get; set; }
-        public DbSet<Loan> Loans { get; set; }
-        public DbSet<User> Users { get; set; }
+        public DbSet<Copy> Copy { get; set; }
+        public DbSet<Loan> Loan { get; set; }
+        public DbSet<User> User { get; set; }
+        public DbSet<Invoice> Invoice { get; set; }
+        public DbSet<Media> Media { get; set; }
 
 
         // Här är kopplingen till databasen
