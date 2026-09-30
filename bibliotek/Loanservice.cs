@@ -48,9 +48,10 @@ namespace bibliotek.Services
 
             // 2. Koppla det nya lånet till bokexemplaret
             copy.LoanID = newLoan.LoanID;
+            copy.Status = 1; //1 = utlånad
             await _context.SaveChangesAsync();
 
-            return (true, "Lånet har genomförts!");
+            return (true, "Lånet har genomförts! Återlämas senast:" + newLoan.LastReturn_date.ToShortDateString());
         }
 
         public async Task<(bool Success, string Message)> ReturnCopyAsync(string barCode)
@@ -62,11 +63,35 @@ namespace bibliotek.Services
             var loan = await _context.Loan.FindAsync(copy.LoanID);
             if (loan == null) return (false, "Lånet hittades inte.");
 
-            loan.Return_date = DateTime.Now;
+            DateTime today = DateTime.Now;
+            loan.Return_date = today;
             copy.LoanID = null;
+            copy.Status = 0; //0 = Tillgänglig
 
             await _context.SaveChangesAsync();
-            return (true, "Boken har återlämnats!");
+            string returnMessage = "Boken har återlämnats i tid!";
+
+            if (today > loan.LastReturn_date)
+            {
+                var media = await _context.Media.FindAsync(copy.MediaID);
+                decimal mediaValue = media?.MediaValue ?? 100m;  //Om media finns (inte är null), hämta MediaValue. Om media däremot är null, krascha inte programmet utan returnera bara null.
+                decimal InvoiceAmount = mediaValue * 1.5m; // 1.5 * Mediavalue;
+
+                var invoice = new Invoice
+                {
+                    LoanID = loan.LoanID,
+                    Amount = InvoiceAmount.ToString("0.00"), //Formatterar beloppet
+                    Created_date = today,
+                    Last_due_date = today.AddDays(30),
+                    Invoice_paid = false,
+                    Paid_date = null
+                };
+                _context.Invoice.Add(invoice);
+                returnMessage = $"Boken var försenad. En faktura på {InvoiceAmount} kr (1.5x bokens värde) har skapats.";
+
+            }
+            await _context.SaveChangesAsync();
+            return (true, returnMessage);
         }
 
     }
