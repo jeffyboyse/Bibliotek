@@ -30,6 +30,10 @@ namespace bibliotek.Models
         {
             base.OnModelCreating(modelBuilder);
 
+            // 1. Primärnyckel för User (LÖSER FELET)
+            modelBuilder.Entity<User>()
+                .HasKey(u => u.User_ID);
+
             // Configure Copy Primary Key since it uses Bar_code (string)
             modelBuilder.Entity<Copy>()
                 .HasKey(c => c.Bar_code);

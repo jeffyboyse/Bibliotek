@@ -1,6 +1,5 @@
 ﻿using bibliotek.Models;
 using bibliotek.Services;
-using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -10,82 +9,69 @@ namespace bibliotek
     public partial class MainWindow : Window
     {
         private readonly MediaSearch _searchService = new MediaSearch();
-        private readonly User? _currentUser; // Sparar den inloggade användaren
+        private User? _currentUser; // Håller koll på den inloggade användaren (om någon)
 
         public MainWindow()
         {
             InitializeComponent();
-            PerformSearch(); // Gör en första sökning när fönstret öppnas
+            PerformSearch(); // Ladda alla medier direkt vid start
         }
-
-        // Överlagrad konstruktor som tar emot den inloggade användaren
         public MainWindow(User user) : this()
         {
             _currentUser = user;
-            this.Title = $"Bibliotekssystem - Inloggad som {user.FirstName} {user.LastName}";
         }
-
-        // LÖSNING PÅ FELET: Denna metod kallas från ProductView för att gå tillbaka
-        public void ShowSearchView()
-        {
-            MainContent.Content = SearchGrid;
-            PerformSearch();
-        }
-
-        // Navigera till produktsidan direkt vid enkelklick i tabellen
-        private void DgSearchResults_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (dgSearchResults.SelectedItem is MediaSearchResult selectedItem)
-            {
-                // Nollställ markeringen så att raden kan klickas igen senare
-                dgSearchResults.SelectedItem = null;
-
-                // Växla innehållet i MainWindow till ProductView
-                MainContent.Content = new ProductView(selectedItem);
-            }
-        }
-
         private void BtnSearch_Click(object sender, RoutedEventArgs e)
         {
             PerformSearch();
         }
 
-        private void BtnLogin_Click(object sender, RoutedEventArgs e)
-        {
-            var context = new ApplicationDbContext();
-            var userService = new UserService(context);
-            var loginWindow = new LoginWindow(userService);
-            loginWindow.Show();
-        }
-
-        private void TxtSearch_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter)
-            {
-                PerformSearch();
-            }
-        }
-
         private void PerformSearch()
         {
-            try
+            string query = txtSearch.Text;
+            var results = _searchService.ExecuteSearch(query);
+
+            // Sätt resultatet till kortvyn (ListBox)
+            lbSearchResults.ItemsSource = results;
+        }
+
+        // Klick på "Visa tillgänglighet / Produktsida"-knappen
+        private void BtnOpenProduct_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is MediaSearchResult selectedItem)
             {
-                string query = txtSearch.Text?.Trim() ?? string.Empty;
-                var results = _searchService.ExecuteSearch(query);
-                dgSearchResults.ItemsSource = results;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Kunde inte hämta sökresultat:\n{ex.Message}", "Databasfel", MessageBoxButton.OK, MessageBoxImage.Error);
+                OpenProductView(selectedItem);
             }
         }
 
-        private async void SeedButton_Click(object sender, RoutedEventArgs e)
+        // Klick direkt på titeln i kortet
+        private void LblTitle_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            string connectionString = "Server=127.0.0.1;Database=bibliotek;Uid=root;Pwd=hemligt-losenord;";
-            await Seedingscript.SeedAsync(connectionString);
-            MessageBox.Show("Databasen har uppdaterats med ny testdata! 🥳");
+            if (sender is TextBlock textBlock && textBlock.Tag is MediaSearchResult selectedItem)
+            {
+                OpenProductView(selectedItem);
+            }
+        }
+
+        private void OpenProductView(MediaSearchResult selectedItem)
+        {
+            // Skapa ProductView och visa den i fönstret
+            var productView = new ProductView(selectedItem, _currentUser);
+
+            // Ersätt fönstrets innehåll med ProductView (eller öppna som nytt fönster om du föredrar det)
+            this.Content = productView;
+        }
+
+        public void ShowSearchView()
+        {
+            // Återställer MainWindow-innehållet när man klickar "Tillbaka" i ProductView
+            InitializeComponent();
             PerformSearch();
+        }
+
+        private void BtnAdmin_Click(object sender, RoutedEventArgs e)
+        {
+            var adminWindow = new AdminWindow();
+            adminWindow.Show();
         }
     }
 }

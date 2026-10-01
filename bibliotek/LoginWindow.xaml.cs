@@ -38,23 +38,14 @@ namespace bibliotek
             {
                 MessageBox.Show(result.Message, "Inloggad", MessageBoxButton.OK, MessageBoxImage.Information);
 
-                // Styr användaren till rätt fönster beroende på Role (1 = Admin, 0 = Låntagare)
-                if (result.Success && result.User != null)
+                // Styr användaren till rätt fönster beroende på Role (true = Admin, false = Låntagare)
+                if (result.User.Role)
                 {
-                    MessageBox.Show(result.Message, "Inloggad", MessageBoxButton.OK, MessageBoxImage.Information);
-                    if (result.User.Role)
-                    {
-                        // På grund av att AdminWindow inte finns ännu skickar vi vidare till MainWindow tills vidare
-                        //var adminWindow = new MainWindow(result.User);
-                        // adminWindow.Show();
-                        var mainWindow = new MainWindow(result.User);
-                        mainWindow.Show();
-
-                    }
+                    var adminWindow = new AdminWindow();
+                    adminWindow.Show();
                 }
                 else
                 {
-                    // Öppna Huvudfönstret för låntagare
                     var mainWindow = new MainWindow(result.User);
                     mainWindow.Show();
                 }
