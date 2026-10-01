@@ -102,6 +102,12 @@ namespace bibliotek
             }
         }
 
+        public void ShowSearchView()
+        {
+            InitializeComponent();
+            PerformSearch();
+        }
+
         private async void SeedButton_Click(object sender, RoutedEventArgs e)
         {
             string connectionString = "Server=127.0.0.1;Database=bibliotek;Uid=root;Pwd=hemligt-losenord;";
