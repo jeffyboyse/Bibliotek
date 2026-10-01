@@ -1,6 +1,5 @@
 ﻿using bibliotek.Models;
 using bibliotek.Services;
-using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -10,25 +9,23 @@ namespace bibliotek
     public partial class MainWindow : Window
     {
         private readonly MediaSearch _searchService = new MediaSearch();
-        private User? _currentUser; // Sparar den inloggade användaren
+        private readonly IUserService _userService = new UserService(new ApplicationDbContext());
+        private User? _currentUser;
 
         public MainWindow()
         {
             InitializeComponent();
-            this.Loaded += MainWindow_Loaded; // Körs när fönstret laddats klart
+            PerformSearch();
         }
 
-        // Överlagrad konstruktor som tar emot den inloggade användaren från LoginWindow
         public MainWindow(User user) : this()
         {
             _currentUser = user;
-            this.Title = $"Bibliotekssystem - Inloggad som {user.FirstName} {user.LastName}";
-        }
 
-        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
-        {
-            PerformSearch(); // Hämta sökresultat vid start
-            UpdateLoginButtonState(); // Uppdatera knappen när fönstret är helt redo
+            if (_currentUser != null)
+            {
+                BtnOpenLogin.Content = $"Inloggad: {_currentUser.FirstName}";
+            }
         }
 
         private void BtnSearch_Click(object sender, RoutedEventArgs e)
@@ -36,70 +33,33 @@ namespace bibliotek
             PerformSearch();
         }
 
-        private void UpdateLoginButtonState()
-        {
-            if (_currentUser != null)
-            {
-                btnLogin.Visibility = Visibility.Collapsed;
-                btnLogout.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                btnLogin.Visibility = Visibility.Visible;
-                btnLogout.Visibility = Visibility.Collapsed;
-            }
-        }
-
-        private void BtnLogin_Click(object sender, RoutedEventArgs e)
-        {
-            var context = new ApplicationDbContext();
-            var userService = new UserService(context);
-
-            var loginWindow = new LoginWindow(userService);
-            bool? result = loginWindow.ShowDialog();
-
-            if (result == true && loginWindow.LoggedInUser != null)
-            {
-                _currentUser = loginWindow.LoggedInUser;
-                this.Title = $"Bibliotekssystem - Inloggad som {_currentUser.FirstName} {_currentUser.LastName}";
-                UpdateLoginButtonState();
-            }
-            else if (loginWindow.LoggedInUser != null && loginWindow.LoggedInUser.Role)
-            {
-                this.Close();
-            }
-        }
-
-        private void BtnLogout_Click(object sender, RoutedEventArgs e)
-        {
-            _currentUser = null;
-            this.Title = "Stina-Lib — Sök Media";
-            MessageBox.Show("Du har loggats ut.", "Utloggad", MessageBoxButton.OK, MessageBoxImage.Information);
-            UpdateLoginButtonState();
-        }
-
-        // Hanterar klicket för både Logga in och Logga ut
-
-        private void TxtSearch_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter)
-            {
-                PerformSearch();
-            }
-        }
-
         private void PerformSearch()
         {
-            try
+            string query = txtSearch.Text;
+            var results = _searchService.ExecuteSearch(query);
+            lbSearchResults.ItemsSource = results;
+        }
+
+        private void BtnOpenProduct_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is MediaSearchResult selectedItem)
             {
-                string query = txtSearch.Text.Trim();
-                var results = _searchService.ExecuteSearch(query);
-                dgSearchResults.ItemsSource = results;
+                OpenProductView(selectedItem);
             }
-            catch (Exception ex)
+        }
+
+        private void LblTitle_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is TextBlock textBlock && textBlock.Tag is MediaSearchResult selectedItem)
             {
-                MessageBox.Show($"Kunde inte hämta sökresultat:\n{ex.Message}", "Databasfel", MessageBoxButton.OK, MessageBoxImage.Error);
+                OpenProductView(selectedItem);
             }
+        }
+
+        private void OpenProductView(MediaSearchResult selectedItem)
+        {
+            var productView = new ProductView(selectedItem, _currentUser);
+            this.Content = productView;
         }
 
         public void ShowSearchView()
@@ -108,13 +68,17 @@ namespace bibliotek
             PerformSearch();
         }
 
+        private void BtnOpenLogin_Click(object sender, RoutedEventArgs e)
+        {
+            var loginWindow = new LoginWindow(_userService);
+            loginWindow.Show();
+            this.Close();
+        }
+
         private async void SeedButton_Click(object sender, RoutedEventArgs e)
         {
-            string connectionString = "Server=127.0.0.1;Database=bibliotek;Uid=root;Pwd=hemligt-losenord;";
-
-            await Seedingscript.SeedAsync(connectionString);
-
-            MessageBox.Show("Databasen har uppdaterats med ny testdata! 🥳");
+            var adminWindow = new AdminWindow();
+            adminWindow.Show();
         }
     }
 }
