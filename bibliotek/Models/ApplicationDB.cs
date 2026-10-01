@@ -25,6 +25,8 @@ namespace bibliotek.Models
         public DbSet<Loan> Loan { get; set; }
         public DbSet<Invoice> Invoice { get; set; }
         public DbSet<Media> Media { get; set; }
+        public DbSet<Attribute> Attribute { get; set; }
+        public DbSet<MediaAttribute> MediaAttribute { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -45,6 +47,27 @@ namespace bibliotek.Models
             // Configure Invoice Primary Key
             modelBuilder.Entity<Invoice>()
                 .HasKey(i => i.InvoiceID);
+
+            modelBuilder.Entity<Media>()
+                .Property(m => m.MediaValue)
+                .HasColumnName("MediaValue"); // Eller det exakta kolumnnamnet i MySQL
+
+
+            // Sätter ihop MediaID + AttributeID till primärnyckel för EAV
+            modelBuilder.Entity<MediaAttribute>()
+                .HasKey(ma => new { ma.MediaID, ma.AttributeID });
+
+            // Koppling mot Media
+            modelBuilder.Entity<MediaAttribute>()
+                .HasOne(ma => ma.Media)
+                .WithMany(m => m.MediaAttribute)
+                .HasForeignKey(ma => ma.MediaID);
+
+            // Koppling mot Attribute
+            modelBuilder.Entity<MediaAttribute>()
+                .HasOne(ma => ma.Attribute)
+                .WithMany(a => a.MediaAttribute)
+                .HasForeignKey(ma => ma.AttributeID);
         }
     }
 }

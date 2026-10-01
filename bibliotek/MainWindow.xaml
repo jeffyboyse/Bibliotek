@@ -17,7 +17,7 @@
         <!-- TOPP-HEADER -->
         <DockPanel Grid.Row="0" Margin="0,0,0,15">
             <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
-                <Button x:Name="BtnAdmin" Content="Admin (CMS)" Click="BtnAdmin_Click" Width="110" Height="30" Margin="0,0,10,0" Background="#ECEFF1"/>
+                <Button x:Name="BtnAdmin" Content="Admin (CMS)" Click="BtnAdmin_Click" Width="110" Height="30" Margin="0,0,10,0" Background="#ECEFF1" Visibility="Collapsed"/>
                 <Button x:Name="BtnOpenLogin" Content="Logga in" Click="BtnOpenLogin_Click" Width="90" Height="30" Background="#1976D2" Foreground="White" FontWeight="Bold"/>
             </StackPanel>
             <TextBlock Text="📚 Stina-Lib Bibliotek" FontSize="22" FontWeight="Bold" Foreground="#333" VerticalAlignment="Center"/>

@@ -36,7 +36,7 @@ namespace bibliotek.Services
             // 1. Skapa den nya låneposten
             var newLoan = new Loan
             {
-                User_ID = userID, // Ändrat från UserID till User_ID
+                UserID = userID, // Ändrat från UserID till User_ID
                 Bar_code = barCode,
                 Loaning_date = DateTime.Now,
                 LastReturn_date = DateTime.Now.AddDays(21),

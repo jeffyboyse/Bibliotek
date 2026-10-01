@@ -38,18 +38,14 @@ namespace bibliotek
             if (result.Success && result.User != null)
             {
                 LoggedInUser = result.User;
+                this.DialogResult = true;
 
-                if (result.User.Role)
-                {
-                    var adminWindow = new AdminWindow(result.User);
-                    adminWindow.Show();
-                    this.DialogResult = false;
-                }
-                else
-                {
-                    this.DialogResult = true; // Stänger fönstret och skickar svar till MainWindow
-                }
             }
+            else
+            {
+                this.DialogResult = true; // Stänger fönstret och skickar svar till MainWindow
+            }
+            
         }
 
         private void BtnGoToRegister_Click(object sender, RoutedEventArgs e)

@@ -7,7 +7,8 @@ namespace bibliotek.Models
         public int MediaID { get; set; } //primary key
         public string Title { get; set; }
         public int Publish_Year { get; set; }
-        public decimal MediaValue { get; set; }
+        public int MediaValue { get; set; }
+        public ICollection<MediaAttribute> MediaAttribute { get; set; } = new List<MediaAttribute>();
     }
         
         

@@ -10,7 +10,7 @@ namespace bibliotek.Models
         public DateTime Loaning_date { get; set; }
         public DateTime? Return_date { get; set; }
         public DateTime  LastReturn_date { get; set; }
-        public int User_ID { get; set; }
+        public int UserID { get; set; }
         public string Bar_code { get; set; }
     }
 }
