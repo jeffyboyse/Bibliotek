@@ -5,7 +5,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
-
 namespace bibliotek
 {
     public partial class MainWindow : Window
@@ -16,30 +15,47 @@ namespace bibliotek
         public MainWindow()
         {
             InitializeComponent();
-            PerformSearch(); // Perform an initial search to populate all media on startup
+            PerformSearch(); // Gör en första sökning när fönstret öppnas
         }
-        //Överlagrad konstruktor som tar emot den inloggade användaren från LoginWindow
+
+        // Överlagrad konstruktor som tar emot den inloggade användaren
         public MainWindow(User user) : this()
         {
             _currentUser = user;
-            // Exempel: Sätt fönstrets titel med användarens namn
             this.Title = $"Bibliotekssystem - Inloggad som {user.FirstName} {user.LastName}";
+        }
+
+        // LÖSNING PÅ FELET: Denna metod kallas från ProductView för att gå tillbaka
+        public void ShowSearchView()
+        {
+            MainContent.Content = SearchGrid;
+            PerformSearch();
+        }
+
+        // Navigera till produktsidan direkt vid enkelklick i tabellen
+        private void DgSearchResults_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (dgSearchResults.SelectedItem is MediaSearchResult selectedItem)
+            {
+                // Nollställ markeringen så att raden kan klickas igen senare
+                dgSearchResults.SelectedItem = null;
+
+                // Växla innehållet i MainWindow till ProductView
+                MainContent.Content = new ProductView(selectedItem);
+            }
         }
 
         private void BtnSearch_Click(object sender, RoutedEventArgs e)
         {
             PerformSearch();
         }
-        
+
         private void BtnLogin_Click(object sender, RoutedEventArgs e)
         {
-            //Skapa en ny instans av ApplicationDbContext och UserService
             var context = new ApplicationDbContext();
             var userService = new UserService(context);
-            //Skapa och visa inloggningsfönstret
             var loginWindow = new LoginWindow(userService);
             loginWindow.Show();
-
         }
 
         private void TxtSearch_KeyDown(object sender, KeyEventArgs e)
@@ -54,7 +70,7 @@ namespace bibliotek
         {
             try
             {
-                string query = txtSearch.Text.Trim();
+                string query = txtSearch.Text?.Trim() ?? string.Empty;
                 var results = _searchService.ExecuteSearch(query);
                 dgSearchResults.ItemsSource = results;
             }
@@ -67,10 +83,9 @@ namespace bibliotek
         private async void SeedButton_Click(object sender, RoutedEventArgs e)
         {
             string connectionString = "Server=127.0.0.1;Database=bibliotek;Uid=root;Pwd=hemligt-losenord;";
-
             await Seedingscript.SeedAsync(connectionString);
-
             MessageBox.Show("Databasen har uppdaterats med ny testdata! 🥳");
+            PerformSearch();
         }
     }
 }

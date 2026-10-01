@@ -4,56 +4,67 @@
         Title="Stina-Lib — Sök Media" Height="500" Width="900"
         WindowStartupLocation="CenterScreen">
 
-    <Grid Margin="15">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    <ContentControl x:Name="MainContent">
+        <Grid x:Name="SearchGrid" Margin="15">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-        <!-- Search Controls -->
-        <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,15">
-            <TextBox x:Name="txtSearch" 
-                     Width="350" 
-                     Height="30" 
-                     VerticalContentAlignment="Center" 
-                     Margin="0,0,10,0"
-                     FontSize="14"
-                     KeyDown="TxtSearch_KeyDown"/>
+            <!-- Search Controls -->
+            <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,15">
+                <TextBox x:Name="txtSearch" 
+                         Width="350" 
+                         Height="30" 
+                         VerticalContentAlignment="Center" 
+                         Margin="0,0,10,0"
+                         FontSize="14"
+                         KeyDown="TxtSearch_KeyDown"/>
 
-            <Button Content="Sök" 
-                    Width="100" 
-                    Height="30" 
-                    Click="BtnSearch_Click" 
-                    IsDefault="True"
-                    Cursor="Hand"/>
-            <Button x:Name="btnLogin" Content="Logga in" Height="35" Background="White" Foreground="Black" FontWeight="Bold" Click="BtnLogin_Click" Width="85" Margin="320,0,0,0"/>
-    
-        </StackPanel>
+                <Button Content="Sök" 
+                        Width="100" 
+                        Height="30" 
+                        Click="BtnSearch_Click" 
+                        IsDefault="True"
+                        Cursor="Hand"/>
 
-        <!-- Search Results Grid -->
-        <DataGrid x:Name="dgSearchResults" 
-          Grid.Row="1" 
-          AutoGenerateColumns="False" 
-          IsReadOnly="True" 
-          GridLinesVisibility="Horizontal"
-          CanUserReorderColumns="False"
-          CanUserResizeRows="False"
-          SelectionMode="Single"
-          RowHeaderWidth="0">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Typ" Binding="{Binding MediaType}" Width="80"/>
-                <DataGridTextColumn Header="ISBN / EAN" Binding="{Binding IsbnOrEan}" Width="120"/>
-                <DataGridTextColumn Header="Titel" Binding="{Binding Title}" Width="*"/>
-                <DataGridTextColumn Header="Författare/Regissör" Binding="{Binding AuthorOrDirector}" Width="150"/>
-                <DataGridTextColumn Header="År" Binding="{Binding PublishYear}" Width="60"/>
-                <DataGridTextColumn Header="Sidor / Längd" Binding="{Binding LengthOrPages}" Width="100"/>
-                <DataGridTextColumn Header="Värde (kr)" Binding="{Binding Price, StringFormat={}{0:C0}}" Width="90"/>
-                <DataGridTextColumn Header="SAB" Binding="{Binding SabCode}" Width="60"/>
-                <DataGridTextColumn Header="Kategori" Binding="{Binding CategoryDescription}" Width="140"/>
-                <DataGridTextColumn Header="Streckkod" Binding="{Binding Barcode}" Width="100"/>
-                <DataGridTextColumn Header="Status" Binding="{Binding StatusText}" Width="90"/>
-            </DataGrid.Columns>
-        </DataGrid>
-        <Button Content="Reset &amp; Seed DB" Click="SeedButton_Click" Margin="5,0,0,0" Width="120" Height="25"/>
-    </Grid>
+                <Button Content="Reset &amp; Seed DB" 
+                        Click="SeedButton_Click" 
+                        Margin="10,0,0,0" 
+                        Width="120" 
+                        Height="30"/>
+
+                <Button x:Name="btnLogin" 
+                        Content="Logga in" 
+                        Height="30" 
+                        Background="White" 
+                        Foreground="Black" 
+                        FontWeight="Bold" 
+                        Click="BtnLogin_Click" 
+                        Width="85" 
+                        Margin="180,0,0,0"/>
+            </StackPanel>
+
+            <!-- Search Results Grid -->
+            <DataGrid x:Name="dgSearchResults" 
+                      Grid.Row="1" 
+                      AutoGenerateColumns="False" 
+                      IsReadOnly="True" 
+                      GridLinesVisibility="Horizontal"
+                      CanUserReorderColumns="False"
+                      CanUserResizeRows="False"
+                      SelectionMode="Single"
+                      SelectionChanged="DgSearchResults_SelectionChanged"
+                      RowHeaderWidth="0"
+                      Cursor="Hand">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Titel" Binding="{Binding Title}" Width="*"/>
+                    <DataGridTextColumn Header="Typ" Binding="{Binding MediaType}" Width="100"/>
+                    <DataGridTextColumn Header="Utgivningsår" Binding="{Binding PublishYear}" Width="100"/>
+                    <DataGridTextColumn Header="Kategori" Binding="{Binding CategoryDescription}" Width="150"/>
+                    <DataGridTextColumn Header="Status" Binding="{Binding StatusText}" Width="110"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+    </ContentControl>
 </Window>
