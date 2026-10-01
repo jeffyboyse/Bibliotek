@@ -1,4 +1,5 @@
 ﻿using bibliotek.Models;
+using bibliotek.Services;
 using System;
 using System.Windows;
 using System.Windows.Controls;
@@ -28,6 +29,17 @@ namespace bibliotek
         private void BtnSearch_Click(object sender, RoutedEventArgs e)
         {
             PerformSearch();
+        }
+        
+        private void BtnLogin_Click(object sender, RoutedEventArgs e)
+        {
+            //Skapa en ny instans av ApplicationDbContext och UserService
+            var context = new ApplicationDbContext();
+            var userService = new UserService(context);
+            //Skapa och visa inloggningsfönstret
+            var loginWindow = new LoginWindow(userService);
+            loginWindow.Show();
+
         }
 
         private void TxtSearch_KeyDown(object sender, KeyEventArgs e)

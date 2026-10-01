@@ -26,6 +26,8 @@
                     Click="BtnSearch_Click" 
                     IsDefault="True"
                     Cursor="Hand"/>
+            <Button x:Name="btnLogin" Content="Logga in" Height="35" Background="White" Foreground="Black" FontWeight="Bold" Click="BtnLogin_Click" Width="85" Margin="320,0,0,0"/>
+    
         </StackPanel>
 
         <!-- Search Results Grid -->

@@ -14,6 +14,7 @@ namespace bibliotek
             _userService = userService;
         }
 
+
         private async void BtnLogin_Click(object sender, RoutedEventArgs e)
         {
             string email = txtEmail.Text.Trim();
@@ -65,6 +66,14 @@ namespace bibliotek
             {
                 lblMessage.Text = result.Message;
                 btnLogin.IsEnabled = true;
+            }
+        }
+        private void BtnGoToRegister_Click(object sender, RoutedEventArgs e)
+        {
+            if(_userService != null)
+            {
+                var registerWindow = new RegisterWindow(_userService);
+                registerWindow.ShowDialog();
             }
         }
     }
