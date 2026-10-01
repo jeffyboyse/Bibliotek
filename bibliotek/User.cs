@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace bibliotek.Models
+namespace bibliotek
 {
     public class User
     {
