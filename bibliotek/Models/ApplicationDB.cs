@@ -1,33 +1,46 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore;
-using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace bibliotek.Models
 {
     public class ApplicationDbContext : DbContext
     {
-        // De här DbSet / klasserna motsvarar tabeller i MySQL-databasen
+        // 1. Ny tom konstruktor (löser CS7036)
+        public ApplicationDbContext() { }
+
+        // Den befintliga konstruktorn (behålls)
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
+
+        // 2. Koppling till databasen när ingen DbContextOptions skickas med
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            if (!optionsBuilder.IsConfigured)
+            {
+                string connectionString = "Server=127.0.0.1;Database=bibliotek;Uid=root;Pwd=hemligt-losenord;";
+                optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+            }
+        }
+
+        public DbSet<User> User { get; set; }
         public DbSet<Copy> Copy { get; set; }
         public DbSet<Loan> Loan { get; set; }
-        public DbSet<User> User { get; set; }
         public DbSet<Invoice> Invoice { get; set; }
         public DbSet<Media> Media { get; set; }
 
-
-        // Här är kopplingen till databasen
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            string connectionString = "Server=localhost;Port=3306;Database=bibliotek;UserID=root;Password=hemligt-losenord;";
+            base.OnModelCreating(modelBuilder);
 
-            optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
-        }
+            // Configure Copy Primary Key since it uses Bar_code (string)
+            modelBuilder.Entity<Copy>()
+                .HasKey(c => c.Bar_code);
 
-        // Här så säger vi till Entity Framework vilka primära nycklar som tabellerna har
-        protected override void OnModelCreating(ModelBuilder modelbuilder)
-        {
-            modelbuilder.Entity<Copy>().HasKey(c => c.Bar_code);
-            modelbuilder.Entity<Loan>().HasKey(l => l.LoanID);
-            modelbuilder.Entity<User>().HasKey(u => u.User_ID);
+            // Configure Loan Primary Key
+            modelBuilder.Entity<Loan>()
+                .HasKey(l => l.LoanID);
+
+            // Configure Invoice Primary Key
+            modelBuilder.Entity<Invoice>()
+                .HasKey(i => i.InvoiceID);
         }
     }
 }

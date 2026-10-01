@@ -1,4 +1,7 @@
-﻿using System;
+﻿using bibliotek.Models;
+using bibliotek.Services;
+using System;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -8,23 +11,78 @@ namespace bibliotek
     public partial class MainWindow : Window
     {
         private readonly MediaSearch _searchService = new MediaSearch();
+        private Grid _searchGrid;
+        private DataGrid _dgSearchResults;
+        private TextBox _txtSearch;
 
         public MainWindow()
         {
             InitializeComponent();
-            PerformSearch(); // Perform an initial search to populate all media on startup
+            BuildSearchViewUI();
+            ShowSearchView();
         }
 
-        private void BtnSearch_Click(object sender, RoutedEventArgs e)
+        // Skapar sökvyn programmatiskt eller så kan den ligga i en egen UserControl
+        private void BuildSearchViewUI()
         {
+            _searchGrid = new Grid { Margin = new Thickness(15) };
+            _searchGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            _searchGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+
+            // Sökfält
+            var topPanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 15) };
+            topPanel.Children.Add(new TextBlock { Text = "Sök:", VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 5, 0) });
+
+            _txtSearch = new TextBox { Width = 300, Height = 30, VerticalContentAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 10, 0), FontSize = 14 };
+            _txtSearch.KeyDown += (s, e) => { if (e.Key == Key.Enter) PerformSearch(); };
+            topPanel.Children.Add(_txtSearch);
+
+            var btnSearch = new Button { Content = "Sök", Width = 80, Height = 30, Margin = new Thickness(0, 0, 15, 0), IsDefault = true };
+            btnSearch.Click += (s, e) => PerformSearch();
+            topPanel.Children.Add(btnSearch);
+
+            var btnSeed = new Button { Content = "Reset & Seed DB", Width = 120, Height = 30 };
+            btnSeed.Click += SeedButton_Click;
+            topPanel.Children.Add(btnSeed);
+
+            Grid.SetRow(topPanel, 0);
+            _searchGrid.Children.Add(topPanel);
+
+            // DataGrid med ENKELKLICK (SelectionChanged)
+            _dgSearchResults = new DataGrid
+            {
+                AutoGenerateColumns = false,
+                IsReadOnly = true,
+                Cursor = Cursors.Hand
+            };
+
+            _dgSearchResults.Columns.Add(new DataGridTextColumn { Header = "Titel", Binding = new System.Windows.Data.Binding("Title"), Width = new DataGridLength(2, DataGridLengthUnitType.Star) });
+            _dgSearchResults.Columns.Add(new DataGridTextColumn { Header = "Författare/Regissör", Binding = new System.Windows.Data.Binding("AuthorOrDirector"), Width = new DataGridLength(1, DataGridLengthUnitType.Star) });
+            _dgSearchResults.Columns.Add(new DataGridTextColumn { Header = "Typ", Binding = new System.Windows.Data.Binding("MediaType"), Width = 100 });
+            _dgSearchResults.Columns.Add(new DataGridTextColumn { Header = "Kategori", Binding = new System.Windows.Data.Binding("CategoryDescription"), Width = new DataGridLength(1, DataGridLengthUnitType.Star) });
+
+            // Navigera direkt vid 1 klick
+            _dgSearchResults.SelectionChanged += DgSearchResults_SelectionChanged;
+
+            Grid.SetRow(_dgSearchResults, 1);
+            _searchGrid.Children.Add(_dgSearchResults);
+        }
+
+        public void ShowSearchView()
+        {
+            MainContent.Content = _searchGrid;
             PerformSearch();
         }
 
-        private void TxtSearch_KeyDown(object sender, KeyEventArgs e)
+        private void DgSearchResults_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (e.Key == Key.Enter)
+            if (_dgSearchResults.SelectedItem is MediaSearchResult selectedItem)
             {
-                PerformSearch();
+                // Nollställ markeringen så att man kan klicka på samma rad igen senare
+                _dgSearchResults.SelectedItem = null;
+
+                // Växla direkt till produktsidan i SAMMA fönster utan fördröjning
+                MainContent.Content = new ProductView(selectedItem);
             }
         }
 
@@ -32,9 +90,15 @@ namespace bibliotek
         {
             try
             {
-                string query = txtSearch.Text.Trim();
-                var results = _searchService.ExecuteSearch(query);
-                dgSearchResults.ItemsSource = results;
+                string query = _txtSearch.Text.Trim();
+                var rawResults = _searchService.ExecuteSearch(query);
+
+                var groupedResults = rawResults
+                    .GroupBy(m => string.IsNullOrEmpty(m.IsbnOrEan) || m.IsbnOrEan == "-" ? m.Title : m.IsbnOrEan)
+                    .Select(g => g.First())
+                    .ToList();
+
+                _dgSearchResults.ItemsSource = groupedResults;
             }
             catch (Exception ex)
             {
@@ -45,10 +109,9 @@ namespace bibliotek
         private async void SeedButton_Click(object sender, RoutedEventArgs e)
         {
             string connectionString = "Server=127.0.0.1;Database=bibliotek;Uid=root;Pwd=hemligt-losenord;";
-
             await Seedingscript.SeedAsync(connectionString);
-
             MessageBox.Show("Databasen har uppdaterats med ny testdata! 🥳");
+            PerformSearch();
         }
     }
 }
