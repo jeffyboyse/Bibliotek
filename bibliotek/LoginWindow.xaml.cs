@@ -1,11 +1,14 @@
-﻿using System.Windows;
+﻿using bibliotek.Models;
 using bibliotek.Services;
+using System.Windows;
 
 namespace bibliotek
 {
     public partial class LoginWindow : Window
     {
         private readonly IUserService _userService;
+        public User? LoggedInUser { get; private set; }
+
 
         // Konstruktor som tar emot UserService (via Dependency Injection eller direkt instansering)
         public LoginWindow(IUserService userService)
@@ -17,57 +20,38 @@ namespace bibliotek
 
         private async void BtnLogin_Click(object sender, RoutedEventArgs e)
         {
+            if (_userService == null) return;
+
             string email = txtEmail.Text.Trim();
             string password = txtPassword.Password;
 
-            // Enkel validering innan anrop
             if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
             {
                 lblMessage.Text = "Fyll i både e-post och lösenord.";
                 return;
             }
 
-            // Inaktivera knappen medan vi väntar på databasen
             btnLogin.IsEnabled = false;
             lblMessage.Text = "Loggar in...";
 
-            // Kör logik från UserService
             var result = await _userService.LoginAsync(email, password);
-
             if (result.Success && result.User != null)
             {
-                MessageBox.Show(result.Message, "Inloggad", MessageBoxButton.OK, MessageBoxImage.Information);
+                LoggedInUser = result.User;
 
-                // Styr användaren till rätt fönster beroende på Role (1 = Admin, 0 = Låntagare)
-                if (result.Success && result.User != null)
+                if (result.User.Role)
                 {
-                    MessageBox.Show(result.Message, "Inloggad", MessageBoxButton.OK, MessageBoxImage.Information);
-                    if (result.User.Role)
-                    {
-                        // På grund av att AdminWindow inte finns ännu skickar vi vidare till MainWindow tills vidare
-                        //var adminWindow = new MainWindow(result.User);
-                        // adminWindow.Show();
-                        var mainWindow = new MainWindow(result.User);
-                        mainWindow.Show();
-
-                    }
+                    var adminWindow = new AdminWindow(result.User);
+                    adminWindow.Show();
+                    this.DialogResult = false;
                 }
                 else
                 {
-                    // Öppna Huvudfönstret för låntagare
-                    var mainWindow = new MainWindow(result.User);
-                    mainWindow.Show();
+                    this.DialogResult = true; // Stänger fönstret och skickar svar till MainWindow
                 }
-
-                // Stäng inloggningsfönstret
-                this.Close();
-            }
-            else
-            {
-                lblMessage.Text = result.Message;
-                btnLogin.IsEnabled = true;
             }
         }
+
         private void BtnGoToRegister_Click(object sender, RoutedEventArgs e)
         {
             if(_userService != null)

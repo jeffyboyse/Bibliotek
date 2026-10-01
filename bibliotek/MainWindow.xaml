@@ -20,14 +20,22 @@
                      FontSize="14"
                      KeyDown="TxtSearch_KeyDown"/>
 
-            <Button Content="Sök" 
-                    Width="100" 
-                    Height="30" 
-                    Click="BtnSearch_Click" 
-                    IsDefault="True"
-                    Cursor="Hand"/>
-            <Button x:Name="btnLogin" Content="Logga in" Height="35" Background="White" Foreground="Black" FontWeight="Bold" Click="BtnLogin_Click" Width="85" Margin="320,0,0,0"/>
-    
+            <Button x:Name="btnLogin" 
+                Content="Logga in" 
+                Width="100" 
+                Height="30" 
+                Margin="310,0,0,0" 
+                Click="BtnLogin_Click" 
+                Visibility="Visible"/>
+
+            <Button x:Name="btnLogout" 
+                Content="Logga ut" 
+                Width="100" 
+                Height="30" 
+                Margin="310,0,0,0" 
+                Click="BtnLogout_Click" 
+                Visibility="Collapsed"/>
+
         </StackPanel>
 
         <!-- Search Results Grid -->

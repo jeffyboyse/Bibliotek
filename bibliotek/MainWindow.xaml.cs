@@ -5,42 +5,80 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
-
 namespace bibliotek
 {
     public partial class MainWindow : Window
     {
         private readonly MediaSearch _searchService = new MediaSearch();
-        private readonly User? _currentUser; // Sparar den inloggade användaren
+        private User? _currentUser; // Sparar den inloggade användaren
 
         public MainWindow()
         {
             InitializeComponent();
-            PerformSearch(); // Perform an initial search to populate all media on startup
+            this.Loaded += MainWindow_Loaded; // Körs när fönstret laddats klart
         }
-        //Överlagrad konstruktor som tar emot den inloggade användaren från LoginWindow
+
+        // Överlagrad konstruktor som tar emot den inloggade användaren från LoginWindow
         public MainWindow(User user) : this()
         {
             _currentUser = user;
-            // Exempel: Sätt fönstrets titel med användarens namn
             this.Title = $"Bibliotekssystem - Inloggad som {user.FirstName} {user.LastName}";
+        }
+
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            PerformSearch(); // Hämta sökresultat vid start
+            UpdateLoginButtonState(); // Uppdatera knappen när fönstret är helt redo
         }
 
         private void BtnSearch_Click(object sender, RoutedEventArgs e)
         {
             PerformSearch();
         }
-        
+
+        private void UpdateLoginButtonState()
+        {
+            if (_currentUser != null)
+            {
+                btnLogin.Visibility = Visibility.Collapsed;
+                btnLogout.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                btnLogin.Visibility = Visibility.Visible;
+                btnLogout.Visibility = Visibility.Collapsed;
+            }
+        }
+
         private void BtnLogin_Click(object sender, RoutedEventArgs e)
         {
-            //Skapa en ny instans av ApplicationDbContext och UserService
             var context = new ApplicationDbContext();
             var userService = new UserService(context);
-            //Skapa och visa inloggningsfönstret
-            var loginWindow = new LoginWindow(userService);
-            loginWindow.Show();
 
+            var loginWindow = new LoginWindow(userService);
+            bool? result = loginWindow.ShowDialog();
+
+            if (result == true && loginWindow.LoggedInUser != null)
+            {
+                _currentUser = loginWindow.LoggedInUser;
+                this.Title = $"Bibliotekssystem - Inloggad som {_currentUser.FirstName} {_currentUser.LastName}";
+                UpdateLoginButtonState();
+            }
+            else if (loginWindow.LoggedInUser != null && loginWindow.LoggedInUser.Role)
+            {
+                this.Close();
+            }
         }
+
+        private void BtnLogout_Click(object sender, RoutedEventArgs e)
+        {
+            _currentUser = null;
+            this.Title = "Stina-Lib — Sök Media";
+            MessageBox.Show("Du har loggats ut.", "Utloggad", MessageBoxButton.OK, MessageBoxImage.Information);
+            UpdateLoginButtonState();
+        }
+
+        // Hanterar klicket för både Logga in och Logga ut
 
         private void TxtSearch_KeyDown(object sender, KeyEventArgs e)
         {
