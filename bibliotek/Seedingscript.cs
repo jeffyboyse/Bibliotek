@@ -107,7 +107,7 @@ namespace bibliotek
                 mediaAttrSql.Append($"({mediaId}, 11, 'Ljudbok'),");
                 mediaAttrSql.Append($"({mediaId}, 1, '{item.Sab}'),");
                 mediaAttrSql.Append($"({mediaId}, 3, '{item.Isbn}'),");
-                mediaAttrSql.Append($"({mediaId}, 6, '{item.Price}kr'),"); // Format: 170kr
+                mediaAttrSql.Append($"({mediaId}, 6, '{item.Price}'),"); // Format: 170kr
                 mediaAttrSql.Append($"({mediaId}, 4, '{item.Runtime}'),");
                 mediaAttrSql.Append($"({mediaId}, 7, '{item.Language}'),");
                 mediaAttrSql.Append($"({mediaId}, 12, '{cleanDesc}'),");
