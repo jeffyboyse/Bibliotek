@@ -1,19 +1,15 @@
-﻿using bibliotek.Models;
-using bibliotek.Services;
-using System;
+﻿using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+
 
 namespace bibliotek
 {
     public partial class MainWindow : Window
     {
         private readonly MediaSearch _searchService = new MediaSearch();
-        private Grid _searchGrid;
-        private DataGrid _dgSearchResults;
-        private TextBox _txtSearch;
 
         public MainWindow()
         {
@@ -66,6 +62,13 @@ namespace bibliotek
 
             Grid.SetRow(_dgSearchResults, 1);
             _searchGrid.Children.Add(_dgSearchResults);
+        }
+        //Överlagrad konstruktor som tar emot den inloggade användaren från LoginWindow
+        public MainWindow(User user) : this()
+        {
+            _currentUser = user;
+            // Exempel: Sätt fönstrets titel med användarens namn
+            this.Title = $"Bibliotekssystem - Inloggad som {user.FirstName} {user.LastName}";
         }
 
         public void ShowSearchView()
