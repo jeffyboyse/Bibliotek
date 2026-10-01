@@ -1,11 +1,14 @@
-﻿using System.Windows;
+﻿using bibliotek.Models;
 using bibliotek.Services;
+using System.Windows;
 
 namespace bibliotek
 {
     public partial class LoginWindow : Window
     {
         private readonly IUserService _userService;
+        public User? LoggedInUser { get; private set; }
+
 
         // Konstruktor som tar emot UserService (via Dependency Injection eller direkt instansering)
         public LoginWindow(IUserService userService)
@@ -17,48 +20,38 @@ namespace bibliotek
 
         private async void BtnLogin_Click(object sender, RoutedEventArgs e)
         {
+            if (_userService == null) return;
+
             string email = txtEmail.Text.Trim();
             string password = txtPassword.Password;
 
-            // Enkel validering innan anrop
             if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
             {
                 lblMessage.Text = "Fyll i både e-post och lösenord.";
                 return;
             }
 
-            // Inaktivera knappen medan vi väntar på databasen
             btnLogin.IsEnabled = false;
             lblMessage.Text = "Loggar in...";
 
-            // Kör logik från UserService
             var result = await _userService.LoginAsync(email, password);
-
             if (result.Success && result.User != null)
             {
-                MessageBox.Show(result.Message, "Inloggad", MessageBoxButton.OK, MessageBoxImage.Information);
+                LoggedInUser = result.User;
 
-                // Styr användaren till rätt fönster beroende på Role (true = Admin, false = Låntagare)
                 if (result.User.Role)
                 {
-                    var adminWindow = new AdminWindow();
+                    var adminWindow = new AdminWindow(result.User);
                     adminWindow.Show();
+                    this.DialogResult = false;
                 }
                 else
                 {
-                    var mainWindow = new MainWindow(result.User);
-                    mainWindow.Show();
+                    this.DialogResult = true; // Stänger fönstret och skickar svar till MainWindow
                 }
-
-                // Stäng inloggningsfönstret
-                this.Close();
-            }
-            else
-            {
-                lblMessage.Text = result.Message;
-                btnLogin.IsEnabled = true;
             }
         }
+
         private void BtnGoToRegister_Click(object sender, RoutedEventArgs e)
         {
             if(_userService != null)
